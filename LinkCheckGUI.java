@@ -2,11 +2,14 @@ package linkCheck;
 
 import java.awt.BorderLayout;
 import java.awt.Checkbox;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.ScrollPane;
+import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -27,12 +30,18 @@ public class LinkCheckGUI extends Frame {
 	JButton runButton;
 	JButton stopButton;
 	Checkbox recursiveBox;
+	
+	public ArrayList<String> goodLinks;
 
 	private static final long serialVersionUID = 1L;
 
 	LinkCheckGUI() {
+		goodLinks = new ArrayList<String>();
 		Frame window = new Frame("Link Checker");
-		window.setSize(600, 400);
+		// java - get screen size using the Toolkit class
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+		window.setSize(screenSize.width / 2, screenSize.height / 2);
 		window.setLocationRelativeTo(null);
 		window.addWindowListener(new WindowAdapter() {
 			@Override
@@ -87,7 +96,7 @@ public class LinkCheckGUI extends Frame {
 
 	public void addResultsText(String text) {
 		resultsHTML += text;
-		//System.out.println(resultsHTML);
+		// System.out.println(resultsHTML);
 		writeResultsSafely(resultsHTML);
 
 	}
@@ -126,7 +135,9 @@ public class LinkCheckGUI extends Frame {
 	}
 
 	public void addResultsText(String url, ErrorsAndRedirects errorsRedirects) {
-		addResultsText(url, errorsRedirects.getErrorPages(), errorsRedirects.getRedirectPages());
+		if (errorsRedirects != null) {
+			addResultsText(url, errorsRedirects.getErrorPages(), errorsRedirects.getRedirectPages());
+		}
 	}
 
 	public void initialiseResults() {

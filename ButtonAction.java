@@ -6,15 +6,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import org.htmlparser.beans.LinkBean;
 
 public class ButtonAction extends Thread {
-	
-	
 
 	LinkCheckGUI mygui;
-	// WebCrawler crawler;
 
 	ButtonAction(LinkCheckGUI newGUI) {
 		this.mygui = newGUI;
@@ -22,6 +21,11 @@ public class ButtonAction extends Thread {
 
 	@Override
 	public void run() {
+
+		// TODO: Make two lists of already checked URLs, one for those working and one
+		// for errors
+
+		// ArrayList<String> checkedOK = new ArrayList<String>();
 
 		// deactivate input line and runButton, enable stopButton:
 		mygui.runButton.setEnabled(false);
@@ -100,19 +104,21 @@ public class ButtonAction extends Thread {
 		mygui.writeStatusSafely(urlFromInput);
 		mygui.statusBar.setEditable(true);
 		mygui.stopButton.setEnabled(false);
+		// clear the progress bar
+		mygui.writeProgressSafely("");
 	}
 
 	public ArrayList<String> getAllSubPages(String urlToCrawl) {
 		ArrayList<String> subPages = new ArrayList<String>();
-		ArrayList<String> unCrawledPages = new ArrayList<String>();
+		LinkedList<String> unCrawledPages = new LinkedList<String>();
 
 		String currentURL;
 		unCrawledPages.add(urlToCrawl);
 		subPages.add(urlToCrawl);
 		mygui.writeStatusSafely("Collecting subpages of " + urlToCrawl);
 
-		while (!unCrawledPages.isEmpty()) {
-			currentURL = unCrawledPages.get(0);
+		while (unCrawledPages.size() != 0) {
+			currentURL = unCrawledPages.poll();
 
 			if (!interrupted()) {
 
@@ -136,8 +142,6 @@ public class ButtonAction extends Thread {
 				subPages = new ArrayList<String>();
 				return subPages;
 			}
-
-			unCrawledPages.remove(currentURL);
 		}
 
 		subPages.remove(urlToCrawl);
@@ -151,54 +155,56 @@ public class ButtonAction extends Thread {
 
 		try {
 
-			// Use getLinks to return array of links from website specified at command-line
+			// Use getLinks to return array of links from website "urlToCheck"
 
 			URL[] urls = getLinks(urlToCheck);
 
 			this.mygui.writeStatusSafely("Checking " + urls.length + " links on: " + urlToCheck + "\n\n");
 
-			// Create an array of same size to store Response Codes
-			int[] codes = new int[urls.length];
+			int currentCode;
 
 			// Iterate through the Urls
 			for (int i = 0; i < urls.length; i++) {
 				if (!interrupted()) {
-
 					try {
 						mygui.writeProgressSafely(i + " of " + urls.length);
+						
+						// see if URL was already checked
+						if (!mygui.goodLinks.contains(urls[i].toString())) {
 
-						// Connect to the URL and add Response Code to Codes Array
-						HttpURLConnection connect = (HttpURLConnection) urls[i].openConnection();
-						codes[i] = connect.getResponseCode();
-						if (codes[i] != 200) {
-							// Redirects
-							if (codes[i] == 301) {
-								redirectPages.put(urls[i].toString(), getDestinationURL(urls[i]).toString());
-
-								// Everything else
+							// Connect to the URL and add Response Code to Codes Array
+							HttpURLConnection connect = (HttpURLConnection) urls[i].openConnection();
+							currentCode = connect.getResponseCode();
+							if (currentCode == 200) {
+								mygui.goodLinks.add(urls[i].toString());
 							} else {
-								errorPages.put(urls[i].toString(), codes[i]);
+								// check for Redirects
+								if (currentCode == 301) {
+									redirectPages.put(urls[i].toString(), getDestinationURL(urls[i]).toString());
+
+									// Everything else
+								} else {
+									errorPages.put(urls[i].toString(), currentCode);
+								}
 							}
-
+							connect.disconnect();
+							mygui.writeProgressSafely("");
 						}
-
-						connect.disconnect();
-						mygui.writeProgressSafely("");
 					}
 
 					catch (Exception e) {
+						System.out.println("Problems with URL: " + urls[i]);
+						errorPages.put(urls[i].toString(), 999);
 						e.printStackTrace();
 					}
 				} else {
 					interrupt();
 					return null;
 				}
-
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-
 		}
 		return new ErrorsAndRedirects(errorPages, redirectPages);
 	}
@@ -222,7 +228,6 @@ public class ButtonAction extends Thread {
 			if (Location.startsWith("/")) {
 				Location = url.getProtocol() + "://" + url.getHost() + Location;
 			}
-			//return getDestinationURL(new URL(Location));
 			return new URL(Location);
 		} catch (Exception e) {
 			e.printStackTrace();
