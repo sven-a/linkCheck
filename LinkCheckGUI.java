@@ -22,8 +22,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.html.HTMLEditorKit;
 
 public class LinkCheckGUI extends JFrame {
-	public JTextField statusBar;
-	public JTextField progressBar;
+	JTextField statusBar;
+	JTextField progressBar;
 	JEditorPane resultsField;
 	ScrollPane scrolling;
 	String resultsHTML;
@@ -31,13 +31,15 @@ public class LinkCheckGUI extends JFrame {
 	JButton stopButton;
 	Checkbox recursiveBox;
 	
+	// keep an ArrayList of the links that work. This speeds up the recursive crawling immensely. By keeping this list in the GUI it is kept from program start to end.
 	public ArrayList<String> goodLinks;
 
 	private static final long serialVersionUID = 1L;
 
-	LinkCheckGUI() {
+	LinkCheckGUI(String text) {
 		goodLinks = new ArrayList<String>();
-		JFrame window = new JFrame("Link Checker");
+		JFrame window = new JFrame(text);
+		
 		// java - get screen size using the Toolkit class
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
