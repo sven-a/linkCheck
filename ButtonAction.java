@@ -7,8 +7,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.Queue;
-
 import org.htmlparser.beans.LinkBean;
 
 public class ButtonAction extends Thread {
@@ -22,11 +20,6 @@ public class ButtonAction extends Thread {
 	@Override
 	public void run() {
 
-		// TODO: Make two lists of already checked URLs, one for those working and one
-		// for errors
-
-		// ArrayList<String> checkedOK = new ArrayList<String>();
-
 		// deactivate input line and runButton, enable stopButton:
 		mygui.runButton.setEnabled(false);
 		mygui.statusBar.setEditable(false);
@@ -37,7 +30,6 @@ public class ButtonAction extends Thread {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("Abbruch angefordert");
 				interrupt();
-				// mygui.stopButton.setEnabled(false);
 			}
 
 		};
@@ -52,8 +44,11 @@ public class ButtonAction extends Thread {
 
 		try {
 			if (mygui.recursiveBox.getState()) {
+
+				// Search for all subpages and collect them in an ArrayList
+				// TODO: Using a Queue (e.g. LinkedList) instead of ArrayList might improve
+				// performance a bit.
 				ArrayList<String> crawlPages = new ArrayList<String>();
-				// crawlPages = crawler.getAllSubPages(urlFromInput);
 				crawlPages = getAllSubPages(urlFromInput);
 
 				if (crawlPages.isEmpty()) {
@@ -68,15 +63,13 @@ public class ButtonAction extends Thread {
 				}
 
 				// check the initial URL:
-				// ErrorsAndRedirects errorsRedirects = crawler.checkPages(urlFromInput);
 				ErrorsAndRedirects errorsRedirects = checkPages(urlFromInput);
 
 				// Show results in window
 				mygui.initialiseResults();
 				mygui.addResultsText(urlFromInput, errorsRedirects);
 
-				// check all links on all subpages
-
+				// check all links on all subpages and show the results immediately
 				for (String singleURL : crawlPages) {
 					if (!interrupted()) {
 						// errorsRedirects = crawler.checkPages(singleURL);
@@ -88,7 +81,6 @@ public class ButtonAction extends Thread {
 			} else {
 				// Code for the non-recursive search
 				ErrorsAndRedirects errorsRedirects = null;
-				// errorsRedirects = crawler.checkPages(urlFromInput);
 				errorsRedirects = checkPages(urlFromInput);
 
 				// Show results in window
@@ -168,7 +160,7 @@ public class ButtonAction extends Thread {
 				if (!interrupted()) {
 					try {
 						mygui.writeProgressSafely(i + " of " + urls.length);
-						
+
 						// see if URL was already checked
 						if (!mygui.goodLinks.contains(urls[i].toString())) {
 

@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Checkbox;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.ScrollPane;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
@@ -16,12 +15,13 @@ import java.util.Set;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.text.html.HTMLEditorKit;
 
-public class LinkCheckGUI extends Frame {
+public class LinkCheckGUI extends JFrame {
 	public JTextField statusBar;
 	public JTextField progressBar;
 	JEditorPane resultsField;
@@ -37,7 +37,7 @@ public class LinkCheckGUI extends Frame {
 
 	LinkCheckGUI() {
 		goodLinks = new ArrayList<String>();
-		Frame window = new Frame("Link Checker");
+		JFrame window = new JFrame("Link Checker");
 		// java - get screen size using the Toolkit class
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -51,7 +51,7 @@ public class LinkCheckGUI extends Frame {
 			}
 		});
 
-		// Top panel contains the status bar and the controls (run and stop button and
+		// Top panel contains the status bar and the control panel (run and stop button and
 		// recursive checkbox)
 		JPanel topPanel = new JPanel();
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
@@ -59,25 +59,25 @@ public class LinkCheckGUI extends Frame {
 		statusBar = new JTextField();
 		statusBar.setEditable(false);
 
-		// Controls
+		// Control panel 
 		runButton = new JButton("run");
 		stopButton = new JButton("stop");
 		stopButton.setEnabled(false); // Stop button will only be enabled, when crawler is running
 		recursiveBox = new Checkbox("recursive Search");
 
-		JPanel controls = new JPanel();
-		controls.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		controls.add(runButton);
-		controls.add(stopButton);
-		controls.add(recursiveBox);
+		JPanel controlPanel = new JPanel();
+		controlPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		controlPanel.add(runButton);
+		controlPanel.add(stopButton);
+		controlPanel.add(recursiveBox);
 
 		topPanel.add(statusBar);
-		topPanel.add(controls);
+		topPanel.add(controlPanel);
 
 		progressBar = new JTextField();
 		progressBar.setEditable(false);
 
-		// Add the status bar at the top
+		// Add the top panel bar at the top
 		window.add(topPanel, BorderLayout.NORTH);
 
 		// Create a JEditorPane and wrap it in a ScrollPane
@@ -130,7 +130,7 @@ public class LinkCheckGUI extends Frame {
 			}
 		}
 
-		resultsText += "<hline>";
+		resultsText += "<hr>";
 		addResultsText(resultsText);
 	}
 
@@ -142,7 +142,7 @@ public class LinkCheckGUI extends Frame {
 
 	public void initialiseResults() {
 		resultsHTML = "<HTML> <h1>Results</h1>";
-		addResultsText("");
+		writeResultsSafely(resultsHTML);
 
 	}
 
