@@ -21,7 +21,7 @@ public class LinkCheck {
 			}
 		};
 		
-		KeyListener enterPressed = new KeyListener() {
+		KeyListener enterPressed = new KeyAdapter() {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -30,17 +30,6 @@ public class LinkCheck {
 					actionOnClick.start();
 				}
 			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-				
-			}
-			
 		};
 		
 		mygui.statusBar.setEditable(true);
