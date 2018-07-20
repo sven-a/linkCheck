@@ -2,12 +2,15 @@ package linkCheck;
 
 import java.awt.BorderLayout;
 import java.awt.Checkbox;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.ScrollPane;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
@@ -19,6 +22,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLEditorKit;
 
 public class LinkCheckGUI extends JFrame {
@@ -86,12 +91,35 @@ public class LinkCheckGUI extends JFrame {
 		resultsField = new JEditorPane();
 		resultsField.setEditorKit(new HTMLEditorKit());
 		resultsField.setEditable(false);
+			
 		scrolling = new ScrollPane();
 		scrolling.add(resultsField);
 		window.add(scrolling);
 
 		// Add the progress bar at the bottom
 		window.add(progressBar, BorderLayout.SOUTH);
+		
+		
+		// add a HyperlinkListener to enable clicking on the URLs in the results and open them in a browser
+				resultsField.addHyperlinkListener(new HyperlinkListener() {
+			        @Override
+			        public void hyperlinkUpdate(HyperlinkEvent e) {
+						if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) { // When one hyperlink is clicked
+							if (Desktop.isDesktopSupported()) {	// check if java.awt.Desktop is supportet
+								try {
+									Desktop.getDesktop().browse(e.getURL().toURI()); // try to open the URL in the System's default browser
+								} catch (IOException e1) {
+									progressBar.setText("An error occured.");
+									e1.printStackTrace();
+								} catch (URISyntaxException e1) {
+									e1.printStackTrace();
+									progressBar.setText("Not a valid hyperlink");
+								}
+							}
+			            }
+			        }
+			    });
+		
 
 		window.setVisible(true);
 	}

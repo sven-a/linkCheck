@@ -2,11 +2,12 @@ package linkCheck;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class LinkCheck {
-	final static String version = "0.9.1";
+	final static String version = "0.9.2";
 
 	public static void main(String[] args) {
 
