@@ -122,7 +122,7 @@ public class ButtonAction extends Thread {
 						if (URLString.startsWith(currentURL) && (!subPages.contains(URLString))) {
 							subPages.add(URLString);
 							unCrawledPages.add(URLString);
-							mygui.writeProgressSafely((subPages.size() - 1) + "Subpages found: ");
+							mygui.writeProgressSafely((subPages.size() - 1) + " Subpages found: ");
 						}
 					}
 				} catch (Exception e) {
@@ -171,7 +171,7 @@ public class ButtonAction extends Thread {
 								mygui.goodLinks.add(urls[i].toString());
 							} else {
 								// check for Redirects
-								if (currentCode == 301) {
+								if (currentCode == 301 || currentCode == 302) {
 									redirectPages.put(urls[i].toString(), getDestinationURL(urls[i]).toString());
 
 									// Everything else

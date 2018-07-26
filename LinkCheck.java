@@ -7,7 +7,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class LinkCheck {
-	final static String version = "0.9.2";
+	final static String version = "0.9.2 Betaversion!";
 
 	public static void main(String[] args) {
 
