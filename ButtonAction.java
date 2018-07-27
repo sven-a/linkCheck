@@ -161,8 +161,8 @@ public class ButtonAction extends Thread {
 					try {
 						mygui.writeProgressSafely(i + " of " + urls.length);
 
-						// see if URL was already checked
-						if (!mygui.goodLinks.contains(urls[i].toString())) {
+						// see if URL was already checked and is not an image
+						if (!mygui.goodLinks.contains(urls[i].toString()) && !isImage(urls[i])) {
 
 							// Connect to the URL and add Response Code to Codes Array
 							HttpURLConnection connect = (HttpURLConnection) urls[i].openConnection();
@@ -225,6 +225,16 @@ public class ButtonAction extends Thread {
 			e.printStackTrace();
 		}
 		return url;
+	}
+	
+	public static String suffix(URL url) {
+		int length = url.toString().trim().length();
+		return url.toString().trim().substring(length - 4, length).toLowerCase();
+	}
+	
+	public static boolean isImage(URL url) {
+		String suffix = suffix(url);
+		return (suffix.equals(".jpg") || suffix.equals(".gif") || suffix.equals(".png"));
 	}
 
 }

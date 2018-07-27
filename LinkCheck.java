@@ -7,20 +7,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class LinkCheck {
-	final static String version = "0.9.2 Betaversion!";
+	final static String version = "0.9.3 Betaversion!";
 
 	public static void main(String[] args) {
 
 		LinkCheckGUI mygui = new LinkCheckGUI("LinkCheck v" + version);
 
-		ActionListener clickRun = new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ButtonAction actionOnClick = new ButtonAction(mygui);
-				actionOnClick.start();
-			}
-		};
+		
+		
 		
 		KeyListener enterPressed = new KeyAdapter() {
 
@@ -34,8 +28,17 @@ public class LinkCheck {
 		};
 		
 		mygui.statusBar.setEditable(true);
-		mygui.runButton.addActionListener(clickRun);
 		mygui.statusBar.addKeyListener(enterPressed);
-	
+		
+		
+		ActionListener clickRun = new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ButtonAction actionOnClick = new ButtonAction(mygui);
+				actionOnClick.start();
+			}
+		};
+		mygui.runButton.addActionListener(clickRun);
 	}
 }

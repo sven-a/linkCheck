@@ -105,7 +105,7 @@ public class LinkCheckGUI extends JFrame {
 			        @Override
 			        public void hyperlinkUpdate(HyperlinkEvent e) {
 						if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) { // When one hyperlink is clicked
-							if (Desktop.isDesktopSupported()) {	// check if java.awt.Desktop is supportet
+							if (Desktop.isDesktopSupported()) {	// check if java.awt.Desktop is supported
 								try {
 									Desktop.getDesktop().browse(e.getURL().toURI()); // try to open the URL in the System's default browser
 								} catch (IOException e1) {
@@ -138,10 +138,10 @@ public class LinkCheckGUI extends JFrame {
 		// list broken links
 
 		if (brokenLinks.isEmpty()) {
-			resultsText += "<h3> No broken Links </h3>";
+			resultsText += "<h3 color=\"#008000\"> No broken Links </h3>";
 		} else {
 
-			resultsText += "<h3> broken Links: </h3>";
+			resultsText += "<h3 color=\"#ff0000\"> broken Links: </h3>";
 			Set<String> errorURLs = brokenLinks.keySet();
 			for (String singleURL : errorURLs) {
 				resultsText += brokenLinks.get(singleURL) + " " + singleURL + "<br>";
@@ -151,9 +151,9 @@ public class LinkCheckGUI extends JFrame {
 		// list redirects
 
 		if (redirectLinks.isEmpty()) {
-			resultsText += "<h3> No redirects </h3>";
+			resultsText += "<h3 color=\"#008000\"> No redirects </h3>";
 		} else {
-			resultsText += "<h3> redirects: </h3>";
+			resultsText += "<h3 color=\"#daad00\"> redirects: </h3>";
 			Set<String> redirectURLs = redirectLinks.keySet();
 			for (String singleURL : redirectURLs) {
 				resultsText += singleURL + " ---> " + redirectLinks.get(singleURL) + "<br>";
