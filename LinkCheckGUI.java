@@ -132,7 +132,7 @@ public class LinkCheckGUI extends JFrame {
 	}
 
 	public void addResultsText(String url, Hashtable<String, Integer> brokenLinks,
-			Hashtable<String, String> redirectLinks) {
+			Hashtable<String, Redirect> redirectLinks) {
 		String resultsText = "<h2>" + StringFormatter.urlToHyperlink(url) + "</h2>";
 
 		// list broken links
@@ -155,8 +155,9 @@ public class LinkCheckGUI extends JFrame {
 		} else {
 			resultsText += "<h3 color=\"#daad00\"> redirects: </h3>";
 			Set<String> redirectURLs = redirectLinks.keySet();
+			
 			for (String singleURL : redirectURLs) {
-				resultsText += singleURL + " ---> " + redirectLinks.get(singleURL) + "<br>";
+				resultsText += redirectLinks.get(singleURL).getCode() + " " + singleURL + " ---> " + redirectLinks.get(singleURL).getDestination() + "<br>";
 			}
 		}
 

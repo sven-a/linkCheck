@@ -143,7 +143,7 @@ public class ButtonAction extends Thread {
 
 	public ErrorsAndRedirects checkPages(String urlToCheck) throws InterruptedException {
 		Hashtable<String, Integer> errorPages = new Hashtable<String, Integer>();
-		Hashtable<String, String> redirectPages = new Hashtable<String, String>();
+		Hashtable<String, Redirect> redirectPages = new Hashtable<String, Redirect>();
 
 		try {
 
@@ -172,7 +172,8 @@ public class ButtonAction extends Thread {
 							} else {
 								// check for Redirects
 								if (currentCode == 301 || currentCode == 302) {
-									redirectPages.put(urls[i].toString(), getDestinationURL(urls[i]).toString());
+								
+									redirectPages.put(urls[i].toString(), new Redirect(getDestinationURL(urls[i]).toString(),  currentCode));
 
 									// Everything else
 								} else {
