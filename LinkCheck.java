@@ -7,14 +7,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class LinkCheck {
-	final static String version = "0.9.3 Betaversion!";
+	final static String version = "1.0";
 
 	public static void main(String[] args) {
 
 		LinkCheckGUI mygui = new LinkCheckGUI("LinkCheck v" + version);
-
-		
-		
 		
 		KeyListener enterPressed = new KeyAdapter() {
 

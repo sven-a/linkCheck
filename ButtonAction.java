@@ -3,8 +3,8 @@ package linkCheck;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import org.htmlparser.beans.LinkBean;
@@ -12,6 +12,7 @@ import org.htmlparser.beans.LinkBean;
 public class ButtonAction extends Thread {
 
 	LinkCheckGUI mygui;
+	boolean stopFlag = false; // The stopFlag will be used to quit several processes when set to true
 
 	ButtonAction(LinkCheckGUI newGUI) {
 		this.mygui = newGUI;
@@ -28,8 +29,7 @@ public class ButtonAction extends Thread {
 		ActionListener stopListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Abbruch angefordert");
-				interrupt();
+				stopFlag = true;
 			}
 
 		};
@@ -48,7 +48,7 @@ public class ButtonAction extends Thread {
 				// Search for all subpages and collect them in an ArrayList
 				// TODO: Using a Queue (e.g. LinkedList) instead of ArrayList might improve
 				// performance a bit.
-				ArrayList<String> crawlPages = new ArrayList<String>();
+				LinkedList<String> crawlPages = new LinkedList<String>();
 				crawlPages = getAllSubPages(urlFromInput);
 
 				if (crawlPages.isEmpty()) {
@@ -71,11 +71,14 @@ public class ButtonAction extends Thread {
 
 				// check all links on all subpages and show the results immediately
 				for (String singleURL : crawlPages) {
-					if (!interrupted()) {
-						// errorsRedirects = crawler.checkPages(singleURL);
-						errorsRedirects = checkPages(singleURL);
+					errorsRedirects = checkPages(singleURL);
+					if (!stopFlag) {
 						mygui.addResultsText(singleURL, errorsRedirects);
+					} else {
+						mygui.addResultsText("canceled");
+						break;
 					}
+
 				}
 
 			} else {
@@ -96,12 +99,22 @@ public class ButtonAction extends Thread {
 		mygui.writeStatusSafely(urlFromInput);
 		mygui.statusBar.setEditable(true);
 		mygui.stopButton.setEnabled(false);
-		// clear the progress bar
-		mygui.writeProgressSafely("");
+		
+		
+		// update the progress bar
+		
+		if (stopFlag) { 
+			mygui.writeProgressSafely("canceled");
+		}
+		else {
+			mygui.writeProgressSafely("finished");
+		}
+		
+		
 	}
 
-	public ArrayList<String> getAllSubPages(String urlToCrawl) {
-		ArrayList<String> subPages = new ArrayList<String>();
+	public LinkedList<String> getAllSubPages(String urlToCrawl) {
+		LinkedList<String> subPages = new LinkedList<String>();
 		LinkedList<String> unCrawledPages = new LinkedList<String>();
 
 		String currentURL;
@@ -112,7 +125,7 @@ public class ButtonAction extends Thread {
 		while (unCrawledPages.size() != 0) {
 			currentURL = unCrawledPages.poll();
 
-			if (!interrupted()) {
+			if (!stopFlag) {
 
 				try {
 					URL[] urls = getLinks(currentURL);
@@ -130,8 +143,7 @@ public class ButtonAction extends Thread {
 					e.printStackTrace();
 				}
 			} else {
-				interrupt();
-				subPages = new ArrayList<String>();
+				subPages = new LinkedList<String>();
 				return subPages;
 			}
 		}
@@ -156,44 +168,49 @@ public class ButtonAction extends Thread {
 			int currentCode;
 
 			// Iterate through the Urls
-			for (int i = 0; i < urls.length; i++) {
-				if (!interrupted()) {
-					try {
-						mygui.writeProgressSafely(i + " of " + urls.length);
+			for (int i = 0; i < urls.length && !stopFlag; i++) {
+				try {
+					mygui.writeProgressSafely(i + " of " + urls.length);
+					System.out.println("testing " + urls[i]);
 
-						// see if URL was already checked and is not an image
-						if (!mygui.goodLinks.contains(urls[i].toString()) && !isImage(urls[i])) {
+					// see if URL was already checked and is not an image
+					if (!mygui.goodLinks.contains(urls[i].toString()) && !isImage(urls[i])) {
 
-							// Connect to the URL and add Response Code to Codes Array
-							HttpURLConnection connect = (HttpURLConnection) urls[i].openConnection();
-							currentCode = connect.getResponseCode();
-							if (currentCode == 200) {
-								mygui.goodLinks.add(urls[i].toString());
+						// Connect to the URL and add Response Code to Codes Array
+						HttpURLConnection connect = (HttpURLConnection) urls[i].openConnection();
+						// close the connection, if there is no response for 5/8 seconds
+						connect.setConnectTimeout(5000);
+						connect.setReadTimeout(8000);
+						currentCode = connect.getResponseCode();
+						if (currentCode == 200) {
+							mygui.goodLinks.add(urls[i].toString());
+						} else {
+							// check for Redirects
+							if (currentCode == 301 || currentCode == 302) {
+
+								redirectPages.put(urls[i].toString(),
+										new Redirect(getDestinationURL(urls[i]).toString(), currentCode));
+
+								// Everything else
 							} else {
-								// check for Redirects
-								if (currentCode == 301 || currentCode == 302) {
-								
-									redirectPages.put(urls[i].toString(), new Redirect(getDestinationURL(urls[i]).toString(),  currentCode));
-
-									// Everything else
-								} else {
-									errorPages.put(urls[i].toString(), currentCode);
-								}
+								errorPages.put(urls[i].toString(), currentCode);
 							}
-							connect.disconnect();
-							mygui.writeProgressSafely("");
 						}
+						connect.disconnect();
+						mygui.writeProgressSafely("");
 					}
-
-					catch (Exception e) {
-						System.out.println("Problems with URL: " + urls[i]);
-						errorPages.put(urls[i].toString(), 999);
-						e.printStackTrace();
-					}
-				} else {
-					interrupt();
-					return null;
 				}
+				catch (SocketTimeoutException ste) {
+					System.out.println("Timeout for URL: " + urls[i]);
+					errorPages.put(urls[i].toString(), 888);
+					ste.printStackTrace();
+				}
+				catch (Exception e) {
+					System.out.println("Problems with URL: " + urls[i]);
+					errorPages.put(urls[i].toString(), 999);
+					e.printStackTrace();
+				}
+
 			}
 
 		} catch (Exception e) {
@@ -227,12 +244,12 @@ public class ButtonAction extends Thread {
 		}
 		return url;
 	}
-	
+
 	public static String suffix(URL url) {
 		int length = url.toString().trim().length();
 		return url.toString().trim().substring(length - 4, length).toLowerCase();
 	}
-	
+
 	public static boolean isImage(URL url) {
 		String suffix = suffix(url);
 		return (suffix.equals(".jpg") || suffix.equals(".gif") || suffix.equals(".png"));

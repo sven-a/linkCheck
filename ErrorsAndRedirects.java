@@ -1,6 +1,5 @@
 package linkCheck;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 
 public class ErrorsAndRedirects {
