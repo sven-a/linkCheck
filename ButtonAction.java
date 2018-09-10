@@ -45,11 +45,8 @@ public class ButtonAction extends Thread {
 		try {
 			if (mygui.recursiveBox.getState()) {
 
-				// Search for all subpages and collect them in an ArrayList
-				// TODO: Using a Queue (e.g. LinkedList) instead of ArrayList might improve
-				// performance a bit.
-				LinkedList<String> crawlPages = new LinkedList<String>();
-				crawlPages = getAllSubPages(urlFromInput);
+				// Search for all subpages and collect them in a LinkedList
+				LinkedList<String> crawlPages = getAllSubPages(urlFromInput);
 
 				if (crawlPages.isEmpty()) {
 					mygui.displayText("no subpages on " + urlFromInput);
@@ -63,23 +60,33 @@ public class ButtonAction extends Thread {
 				}
 
 				// check the initial URL:
+				mygui.writeProgressRightSafely(crawlPages.size() + " pages remaining");
 				ErrorsAndRedirects errorsRedirects = checkPages(urlFromInput);
 
 				// Show results in window
 				mygui.initialiseResults();
-				mygui.addResultsText(urlFromInput, errorsRedirects);
+				if (!((mygui.onlyErrorsBox.getState() && errorsRedirects.errorPages.isEmpty() && errorsRedirects.redirectPages.isEmpty()))) {
+					mygui.addResultsText(urlFromInput, errorsRedirects);
+				}
 
 				// check all links on all subpages and show the results immediately
-				for (String singleURL : crawlPages) {
+				while (!crawlPages.isEmpty()) {
+				String singleURL = crawlPages.removeFirst();
+					
+					mygui.writeProgressRightSafely(crawlPages.size() + " pages remaining");
 					errorsRedirects = checkPages(singleURL);
 					if (!stopFlag) {
-						mygui.addResultsText(singleURL, errorsRedirects);
+						
+						if (!((mygui.onlyErrorsBox.getState() && errorsRedirects.errorPages.isEmpty() && errorsRedirects.redirectPages.isEmpty()))) {
+							mygui.addResultsText(singleURL, errorsRedirects);
+						}
 					} else {
 						mygui.addResultsText("canceled");
 						break;
 					}
 
 				}
+				
 
 			} else {
 				// Code for the non-recursive search
@@ -99,7 +106,7 @@ public class ButtonAction extends Thread {
 		mygui.writeStatusSafely(urlFromInput);
 		mygui.statusBar.setEditable(true);
 		mygui.stopButton.setEnabled(false);
-		
+		mygui.writeProgressRightSafely("");
 		
 		// update the progress bar
 		
@@ -171,16 +178,18 @@ public class ButtonAction extends Thread {
 			for (int i = 0; i < urls.length && !stopFlag; i++) {
 				try {
 					mygui.writeProgressSafely(i + " of " + urls.length);
-					System.out.println("testing " + urls[i]);
+					// DEBUG System.out.println("testing " + urls[i]);
 
 					// see if URL was already checked and is not an image
 					if (!mygui.goodLinks.contains(urls[i].toString()) && !isImage(urls[i])) {
 
 						// Connect to the URL and add Response Code to Codes Array
 						HttpURLConnection connect = (HttpURLConnection) urls[i].openConnection();
+						
 						// close the connection, if there is no response for 5/8 seconds
 						connect.setConnectTimeout(5000);
 						connect.setReadTimeout(8000);
+						
 						currentCode = connect.getResponseCode();
 						if (currentCode == 200) {
 							mygui.goodLinks.add(urls[i].toString());

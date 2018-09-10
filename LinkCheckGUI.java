@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -29,12 +30,14 @@ import javax.swing.text.html.HTMLEditorKit;
 public class LinkCheckGUI extends JFrame {
 	JTextField statusBar;
 	JTextField progressBar;
+	JTextField progressBarRight;
 	JEditorPane resultsField;
 	ScrollPane scrolling;
 	String resultsHTML;
 	JButton runButton;
 	JButton stopButton;
 	Checkbox recursiveBox;
+	Checkbox onlyErrorsBox;
 	
 	// keep an ArrayList of the links that work. This speeds up the recursive crawling immensely. By keeping this list in the GUI it is kept from program start to end.
 	public ArrayList<String> goodLinks;
@@ -53,7 +56,7 @@ public class LinkCheckGUI extends JFrame {
 		window.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				System.out.println("Closed");
+				// DEBUG System.out.println("Closed");
 				e.getWindow().dispose();
 			}
 		});
@@ -70,20 +73,37 @@ public class LinkCheckGUI extends JFrame {
 		runButton = new JButton("run");
 		stopButton = new JButton("stop");
 		stopButton.setEnabled(false); // Stop button will only be enabled, when crawler is running
+		
+		JPanel checkBoxesPanel = new JPanel();
+		checkBoxesPanel.setLayout(new BoxLayout(checkBoxesPanel, BoxLayout.Y_AXIS));
 		recursiveBox = new Checkbox("recursive Search");
+		onlyErrorsBox = new Checkbox("show only pages with errors");
+		
+		checkBoxesPanel.add(recursiveBox);
+		checkBoxesPanel.add(onlyErrorsBox);
 
 		JPanel controlPanel = new JPanel();
 		controlPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		controlPanel.add(runButton);
 		controlPanel.add(stopButton);
-		controlPanel.add(recursiveBox);
+		
+		controlPanel.add(checkBoxesPanel);
 
 		topPanel.add(statusBar);
 		topPanel.add(controlPanel);
 
 		progressBar = new JTextField();
 		progressBar.setEditable(false);
-
+		progressBarRight = new JTextField();
+		progressBarRight.setEditable(false);
+		
+		JPanel progressBars = new JPanel();
+		progressBars.setLayout(new BoxLayout(progressBars, BoxLayout.X_AXIS));
+		progressBars.add(progressBar);
+		progressBars.add(Box.createHorizontalGlue());
+		progressBars.add(progressBarRight);
+		
+		
 		// Add the top panel bar at the top
 		window.add(topPanel, BorderLayout.NORTH);
 
@@ -97,7 +117,7 @@ public class LinkCheckGUI extends JFrame {
 		window.add(scrolling);
 
 		// Add the progress bar at the bottom
-		window.add(progressBar, BorderLayout.SOUTH);
+		window.add(progressBars, BorderLayout.SOUTH);
 		
 		
 		// add a HyperlinkListener to enable clicking on the URLs in the results and open them in a browser
@@ -216,6 +236,20 @@ public class LinkCheckGUI extends JFrame {
 			public void run() {
 				try {
 					progressBar.setText(newProgress);
+				} catch (Exception x) {
+					x.printStackTrace();
+				}
+			}
+		};
+
+		SwingUtilities.invokeLater(r);
+	}
+	public void writeProgressRightSafely(String newProgress) {
+
+		Runnable r = new Runnable() {
+			public void run() {
+				try {
+					progressBarRight.setText(newProgress);
 				} catch (Exception x) {
 					x.printStackTrace();
 				}
